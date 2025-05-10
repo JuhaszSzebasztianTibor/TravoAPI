@@ -139,7 +139,7 @@ namespace YourNamespace.Controllers
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(12),
+                expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: creds
             );
 

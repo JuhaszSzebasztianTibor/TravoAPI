@@ -29,7 +29,7 @@ namespace TravoAPI.Controllers
         [Authorize]
         [HttpPost]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> CreateTrip([FromForm] CreateTripDto createTripDto)
+        public async Task<IActionResult> CreateTrip([FromForm] TripDto createTripDto)
         {
             if (!ModelState.IsValid)
                 return ValidationProblem(ModelState);
@@ -146,6 +146,88 @@ namespace TravoAPI.Controllers
 
             return Ok(trips);
         }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateTrip(int id, [FromForm] TripDto dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            // 1) Fetch the existing trip
+            var trip = await _context.Trips.FindAsync(id);
+            if (trip == null)
+                return NotFound("Trip not found.");
+
+            // 2) Make sure the caller owns it
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (trip.UserId != userId)
+                return Forbid("You are not authorized to edit this trip.");
+
+            // 3) Handle image update
+            string? newImagePath = trip.Image;
+            if (dto.ImageFile != null)
+            {
+                // (Optional) delete old file if it was uploaded
+                if (!string.IsNullOrEmpty(trip.Image) && trip.Image.StartsWith("/Uploads/"))
+                {
+                    var oldPath = Path.Combine(_environment.WebRootPath, trip.Image.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
+
+                // Save the new file
+                var uploadsFolder = Path.Combine(_environment.WebRootPath, "Uploads");
+                Directory.CreateDirectory(uploadsFolder);
+                var fileName = Guid.NewGuid() + Path.GetExtension(dto.ImageFile.FileName);
+                var fullPath = Path.Combine(uploadsFolder, fileName);
+
+                if (dto.ImageFile.Length > 5 * 1024 * 1024)
+                    return BadRequest("File size must be less than 5MB");
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                    await dto.ImageFile.CopyToAsync(stream);
+
+                newImagePath = $"/Uploads/{fileName}";
+            }
+            else if (!string.IsNullOrWhiteSpace(dto.ImageUrl))
+            {
+                newImagePath = dto.ImageUrl;
+            }
+
+            // 4) Update scalar properties
+            trip.TripName = dto.TripName;
+            trip.Description = dto.Description;
+            trip.StartDate = dto.StartDate;
+            trip.EndDate = dto.EndDate;
+            trip.Image = newImagePath!;
+
+            // 5) Save
+            try
+            {
+                _context.Trips.Update(trip);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error updating trip {id}: {ex.Message}");
+                return StatusCode(500, "Error updating trip.");
+            }
+
+            // 6) Return the updated resource
+            return Ok(new
+            {
+                trip.Id,
+                trip.TripName,
+                trip.StartDate,
+                trip.EndDate,
+                trip.Description,
+                Image = GetAbsoluteUrl(trip.Image),
+                trip.UserId
+            });
+        }
+
 
         [Authorize]
         [HttpDelete("{id}")]

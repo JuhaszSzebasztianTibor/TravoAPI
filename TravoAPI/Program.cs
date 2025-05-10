@@ -119,7 +119,8 @@ app.UseCors("AllowReactClient");
 
 app.UseHttpsRedirection();
 
-app.UseStaticFiles();
+app.UseStaticFiles(); // so that wwwroot/uploads is publicly readable
+app.UseRouting();
 
 // — Authentication & Authorization
 app.UseAuthentication();
