@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravoAPI.Data;
 
@@ -11,9 +12,11 @@ using TravoAPI.Data;
 namespace TravoAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250511083202_AddPackingTables")]
+    partial class AddPackingTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -232,26 +235,6 @@ namespace TravoAPI.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "SYSTEM",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "11111111-1111-1111-1111-111111111111",
-                            Email = "system@localhost",
-                            EmailConfirmed = true,
-                            FirstName = "System",
-                            LastName = "Account",
-                            LockoutEnabled = false,
-                            NormalizedEmail = "SYSTEM@LOCALHOST",
-                            NormalizedUserName = "SYSTEM@LOCALHOST",
-                            PasswordHash = "AQAAAAEAACcQAAAAEKX8d2J2lULBw4mYx4Zx05wZIjgj6UeQ7GFXSJiJTh+ZJ6Rqiw1j4fYSUQ2mLzdCjg==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "00000000-0000-0000-0000-000000000000",
-                            TwoFactorEnabled = false,
-                            UserName = "system@localhost"
-                        });
                 });
 
             modelBuilder.Entity("TravoAPI.Models.PackingItem", b =>
@@ -424,7 +407,6 @@ namespace TravoAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
@@ -442,42 +424,36 @@ namespace TravoAPI.Migrations
                         {
                             Id = 1,
                             Category = 0,
-                            Name = "Fancy Dinner",
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 2,
                             Category = 1,
-                            Name = "Beach",
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 3,
                             Category = 2,
-                            Name = "Business",
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 4,
                             Category = 3,
-                            Name = "Baby",
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 5,
                             Category = 4,
-                            Name = "Essentials",
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 6,
                             Category = 5,
-                            Name = "Food",
                             UserId = "SYSTEM"
                         });
                 });

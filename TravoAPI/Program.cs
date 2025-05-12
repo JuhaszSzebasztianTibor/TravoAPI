@@ -2,10 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;  
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using TravoAPI.Data;
 using TravoAPI.Models;
+using TravoAPI.Data.Interfaces;
+using TravoAPI.Data.Repositories;
+using TravoAPI.Services;
+using TravoAPI.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,13 +48,12 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])
-        )
+                                      Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret"])
+                                  )
     };
 
     options.Events = new JwtBearerEvents
     {
-        // 1) Log the raw header the server sees:
         OnMessageReceived = ctx =>
         {
             var hdr = ctx.Request.Headers["Authorization"].ToString();
@@ -59,8 +62,6 @@ builder.Services.AddAuthentication(options =>
             log.LogInformation("JWT → OnMessageReceived: {hdr}", hdr);
             return Task.CompletedTask;
         },
-
-        // 2) Log any exception thrown while validating:
         OnAuthenticationFailed = ctx =>
         {
             var log = ctx.HttpContext.RequestServices
@@ -68,8 +69,6 @@ builder.Services.AddAuthentication(options =>
             log.LogError(ctx.Exception, "JWT → OnAuthenticationFailed");
             return Task.CompletedTask;
         },
-
-        // 3) Log the challenge details just before sending 401:
         OnChallenge = ctx =>
         {
             var log = ctx.HttpContext.RequestServices
@@ -97,17 +96,25 @@ builder.Services.AddCors(options =>
     });
 });
 
+// — Register Generic + Specific Repositories
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<IPackingRepository, PackingRepository>();
+
+// — Register Service Layer
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IPackingService, PackingService>();
+
 // — Controllers, Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 var app = builder.Build();
 
 // 2. Configure the HTTP request pipeline:
 
-// — Swagger (in Development)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -125,7 +132,6 @@ app.UseRouting();
 // — Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 // — Map controllers
 app.MapControllers();

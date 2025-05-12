@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravoAPI.Data;
 
@@ -11,9 +12,11 @@ using TravoAPI.Data;
 namespace TravoAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250511084737_AddNamesToPackingSeedData")]
+    partial class AddNamesToPackingSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -238,7 +241,7 @@ namespace TravoAPI.Migrations
                         {
                             Id = "SYSTEM",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "11111111-1111-1111-1111-111111111111",
+                            ConcurrencyStamp = "d11807c2-e1f8-45a3-a9b7-69ca3244bb57",
                             Email = "system@localhost",
                             EmailConfirmed = true,
                             FirstName = "System",
@@ -246,9 +249,8 @@ namespace TravoAPI.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SYSTEM@LOCALHOST",
                             NormalizedUserName = "SYSTEM@LOCALHOST",
-                            PasswordHash = "AQAAAAEAACcQAAAAEKX8d2J2lULBw4mYx4Zx05wZIjgj6UeQ7GFXSJiJTh+ZJ6Rqiw1j4fYSUQ2mLzdCjg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "00000000-0000-0000-0000-000000000000",
+                            SecurityStamp = "e3895b49-fc23-4461-a42b-643fc50fadaf",
                             TwoFactorEnabled = false,
                             UserName = "system@localhost"
                         });
@@ -449,7 +451,7 @@ namespace TravoAPI.Migrations
                         {
                             Id = 2,
                             Category = 1,
-                            Name = "Beach",
+                            Name = "Beach Trip",
                             UserId = "SYSTEM"
                         },
                         new
