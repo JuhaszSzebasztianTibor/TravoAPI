@@ -1,150 +1,131 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Controllers/PackingController.cs
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TravoAPI.Dtos.Packing;
 using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Controllers
 {
+    [Authorize]
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/trips/{tripId}/packing")]
     public class PackingController : ControllerBase
     {
-        private readonly IPackingService _service;
-        public PackingController(IPackingService service) => _service = service;
+        private readonly IPackingService _svc;
+        private readonly ITripService _tripSvc;
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-        private string? GetUserId()
+        public PackingController(IPackingService svc, ITripService tripSvc)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return string.IsNullOrEmpty(userId) ? null : userId;
+            _svc = svc;
+            _tripSvc = tripSvc;
         }
 
+        [AllowAnonymous]
+        [HttpGet("templates")]
+        public async Task<IActionResult> GetTemplates()
+            => Ok(new { templates = await _svc.GetTemplatesAsync() });
+
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(int tripId)
         {
-            var userId = GetUserId() ?? "";
-            return Ok(await _service.GetAllListsAsync(userId));
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
+
+            return Ok(await _svc.GetAllListsAsync(UserId, tripId));
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get(int tripId, int id)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            var result = await _service.GetListByIdAsync(id, userId);
-            return result is null ? NotFound() : Ok(result);
+            var d = await _svc.GetListByIdAsync(UserId, tripId, id);
+            return d == null ? NotFound() : Ok(d);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(PackingListDto dto)
+        public async Task<IActionResult> Create(int tripId, [FromBody] PackingListDto dto)
         {
-            // 1. Retrieve and guard userId
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            // 2. Call the service
-            var createdDto = await _service.CreateListAsync(dto, userId);
-            if (createdDto == null)
-                return BadRequest();
+            var created = await _svc.CreateListAsync(UserId, tripId, dto);
 
-            // 3. Return 201 with Location header
+            // supply both tripId & id, so CreatedAtAction can match the [HttpGet("{id}")]
             return CreatedAtAction(
-                actionName: nameof(Get),
-                routeValues: new { id = createdDto.Id },
-                value: createdDto
+                nameof(Get),
+                new { tripId = tripId, id = created.Id },
+                created
             );
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, PackingListDto dto)
+        public async Task<IActionResult> Update(int tripId, int id, [FromBody] PackingListDto dto)
         {
-            if (dto.Id != id) return BadRequest();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
-
-            var success = await _service.UpdateListAsync(dto, userId);
-            return success ? Ok() : NotFound();
+            dto.Id = id;
+            var ok = await _svc.UpdateListAsync(UserId, tripId, dto);
+            return ok ? Ok() : NotFound();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int tripId, int id)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            var success = await _service.DeleteListAsync(id, userId);
-            return success ? Ok() : NotFound();
+            var ok = await _svc.DeleteListAsync(UserId, tripId, id);
+            return ok ? NoContent() : NotFound();
         }
 
         [HttpPost("{listId}/items")]
-        public async Task<IActionResult> AddItem(int listId, [FromBody] PackingItemDto itemDto)
+        public async Task<IActionResult> AddItem(int tripId, int listId, [FromBody] PackingItemDto dto)
         {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            // Have service return the DTO of the newly created item
-            var created = await _service.AddItemToListAsync(listId, itemDto, userId);
-            if (created == null)
-                return BadRequest();
-
-            // 201 → /api/Packing/{listId}/items/{created.Id}
+            var c = await _svc.AddItemToListAsync(listId, UserId, dto);
             return CreatedAtAction(
-              actionName: nameof(UpdateItem),
-              routeValues: new { listId, itemId = created.Id },
-              value: created
+                nameof(UpdateItem),
+                new { tripId = tripId, listId = listId, itemId = c.Id },
+                c
             );
         }
 
         [HttpPatch("{listId}/items/{itemId}")]
-        public async Task<IActionResult> UpdateItem(int listId, int itemId, [FromBody] PackingItemDto itemDto)
+        public async Task<IActionResult> UpdateItem(int tripId, int listId, int itemId, [FromBody] PackingItemDto dto)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            Console.WriteLine($"PATCH Request: list={listId}, item={itemId}");
-
-            try
-            {
-                var success = await _service.UpdateItemAsync(listId, itemId, itemDto, userId);
-                return success ? Ok() : NotFound();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"PATCH Error: {ex.Message}");
-                return StatusCode(500);
-            }
+            var ok = await _svc.UpdateItemAsync(listId, itemId, UserId, dto);
+            return ok ? Ok() : NotFound();
         }
 
         [HttpDelete("{listId}/items/{itemId}")]
-        public async Task<IActionResult> RemoveItem(int listId, int itemId)
+        public async Task<IActionResult> RemoveItem(int tripId, int listId, int itemId)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            Console.WriteLine($"DELETE Request: list={listId}, item={itemId}, user={userId}");
-            try
-            {
-                var success = await _service.RemoveItemAsync(listId, itemId, userId);
-                return success ? Ok() : NotFound();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"DELETE Error: {ex.Message}");
-                return StatusCode(500);
-            }
+            var ok = await _svc.RemoveItemAsync(listId, itemId, UserId);
+            return ok ? NoContent() : NotFound();
         }
 
         [HttpGet("{listId}/items")]
-        public async Task<IActionResult> GetListItems(int listId)
+        public async Task<IActionResult> GetItems(int tripId, int listId)
         {
-            var userId = GetUserId();
-            if (userId == null) return Unauthorized();
+            if (!await _tripSvc.ValidateTripOwnership(UserId, tripId))
+                return Forbid();
 
-            var list = await _service.GetListByIdAsync(listId, userId);
-            return list is null ? NotFound() : Ok(list.Items);
+            var d = await _svc.GetListByIdAsync(UserId, tripId, listId);
+            return d == null ? NotFound() : Ok(d.Items);
         }
     }
 }

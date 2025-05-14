@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravoAPI.Data;
 
@@ -11,9 +12,11 @@ using TravoAPI.Data;
 namespace TravoAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250513085446_AddBudgetEntity")]
+    partial class AddBudgetEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -270,7 +273,7 @@ namespace TravoAPI.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<DateTime>("Day")
+                    b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
@@ -279,9 +282,6 @@ namespace TravoAPI.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TripId")
                         .HasColumnType("int");
 
                     b.Property<string>("UserId")
@@ -461,16 +461,12 @@ namespace TravoAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PackingListIcon")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TripId")
-                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -486,33 +482,43 @@ namespace TravoAPI.Migrations
                         new
                         {
                             Id = 1,
+                            Category = 0,
                             Name = "Fancy Dinner",
-                            PackingListIcon = "fas fa-utensils",
-                            TripId = 0,
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 2,
+                            Category = 1,
                             Name = "Beach",
-                            PackingListIcon = "fas fa-umbrella-beach",
-                            TripId = 0,
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 3,
+                            Category = 2,
                             Name = "Business",
-                            PackingListIcon = "fas fa-briefcase",
-                            TripId = 0,
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 4,
+                            Category = 3,
+                            Name = "Baby",
+                            UserId = "SYSTEM"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Category = 4,
                             Name = "Essentials",
-                            PackingListIcon = "fas fa-exclamation-circle",
-                            TripId = 0,
+                            UserId = "SYSTEM"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Category = 5,
+                            Name = "Food",
                             UserId = "SYSTEM"
                         });
                 });

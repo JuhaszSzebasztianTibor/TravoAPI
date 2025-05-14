@@ -10,6 +10,7 @@ using TravoAPI.Data.Interfaces;
 using TravoAPI.Data.Repositories;
 using TravoAPI.Services;
 using TravoAPI.Services.Interfaces;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,15 +100,22 @@ builder.Services.AddCors(options =>
 // — Register Generic + Specific Repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<ITripRepository, TripRepository>();
+builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IPackingRepository, PackingRepository>();
 
 // — Register Service Layer
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITripService, TripService>();
+builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<IPackingService, PackingService>();
 
 // — Controllers, Swagger
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(opts =>
+{
+    // Serialize all enums as strings, e.g. BudgetStatus.Paid → "Paid"
+    opts.JsonSerializerOptions.Converters
+        .Add(new JsonStringEnumConverter());
+}); ;
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

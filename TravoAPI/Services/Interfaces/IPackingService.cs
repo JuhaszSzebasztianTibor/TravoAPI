@@ -1,16 +1,20 @@
-﻿using TravoAPI.Dtos.Packing;
+﻿// Services/Interfaces/IPackingService.cs
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using TravoAPI.Dtos.Packing;
 
 namespace TravoAPI.Services.Interfaces
 {
     public interface IPackingService
     {
-        Task<IEnumerable<PackingListDto>> GetAllListsAsync(string userId);
-        Task<PackingListDto?> GetListByIdAsync(int id, string userId);
-        Task<PackingListDto> CreateListAsync(PackingListDto dto, string userId);
-        Task<bool> UpdateListAsync(PackingListDto dto, string userId);
-        Task<bool> DeleteListAsync(int id, string userId);
-        Task<PackingItemDto> AddItemToListAsync(int listId, PackingItemDto item, string userId);
-        Task<bool> UpdateItemAsync(int listId, int itemId, PackingItemDto item, string userId);
+        Task<IEnumerable<PackingListDto>> GetAllListsAsync(string userId, int tripId);
+        Task<PackingListDto?> GetListByIdAsync(string userId, int tripId, int listId);
+        Task<PackingListDto> CreateListAsync(string userId, int tripId, PackingListDto dto);
+        Task<bool> UpdateListAsync(string userId, int tripId, PackingListDto dto);
+        Task<bool> DeleteListAsync(string userId, int tripId, int listId);
+        Task<PackingItemDto> AddItemToListAsync(int listId, string userId, PackingItemDto dto);
+        Task<bool> UpdateItemAsync(int listId, int itemId, string userId, PackingItemDto dto);
         Task<bool> RemoveItemAsync(int listId, int itemId, string userId);
+        Task<Dictionary<string, List<PackingItemDto>>> GetTemplatesAsync();
     }
 }

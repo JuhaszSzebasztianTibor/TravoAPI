@@ -11,5 +11,9 @@ namespace TravoAPI.Services.Interfaces
         Task<Trip> UpdateTripAsync(string userId, int id, TripDto dto);
         Task<bool> DeleteTripAsync(string userId, int id);
         string GetAbsoluteUrl(string relativePath);
+
+        Task<IEnumerable<Trip>> GetTripsByUserAsync(string userId);
+
+        public Task<bool> ValidateTripOwnership(string userId, int tripId);
     }
 }

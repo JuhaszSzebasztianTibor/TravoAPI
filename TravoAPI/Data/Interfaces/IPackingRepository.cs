@@ -1,26 +1,18 @@
-﻿using TravoAPI.Models;
+﻿// Data/Interfaces/IPackingRepository.cs
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TravoAPI.Models;
 
 namespace TravoAPI.Data.Interfaces
 {
     public interface IPackingRepository
     {
         Task AddAsync(PackingList entity);
-        void Delete(PackingList entity);
-
-        /// <summary>
-        /// Loads just the PackingList (no navigation properties).
-        /// </summary>
-        Task<PackingList?> GetByIdAsync(int id);
-
-        /// <summary>
-        /// Loads the PackingList together with its Items.
-        /// </summary>
-        Task<PackingList?> GetByIdWithItemsAsync(int id);
-
-        Task<IEnumerable<PackingList>> GetByUserAsync(string userId);
         void Update(PackingList entity);
+        void Delete(PackingList entity);
+        Task<PackingList?> GetByIdWithItemsAsync(int id);
+        Task<IEnumerable<PackingList>> GetByUserAsync(string userId);
+        Task<IEnumerable<PackingList>> GetByUserAndTripAsync(string userId, int tripId);
         Task<bool> SaveChangesAsync();
     }
 }

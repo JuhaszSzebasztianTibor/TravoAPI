@@ -12,8 +12,8 @@ using TravoAPI.Data;
 namespace TravoAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250511084737_AddNamesToPackingSeedData")]
-    partial class AddNamesToPackingSeedData
+    [Migration("20250514120649_FixPackingListTable")]
+    partial class FixPackingListTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -241,7 +241,7 @@ namespace TravoAPI.Migrations
                         {
                             Id = "SYSTEM",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "d11807c2-e1f8-45a3-a9b7-69ca3244bb57",
+                            ConcurrencyStamp = "11111111-1111-1111-1111-111111111111",
                             Email = "system@localhost",
                             EmailConfirmed = true,
                             FirstName = "System",
@@ -249,11 +249,53 @@ namespace TravoAPI.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "SYSTEM@LOCALHOST",
                             NormalizedUserName = "SYSTEM@LOCALHOST",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKX8d2J2lULBw4mYx4Zx05wZIjgj6UeQ7GFXSJiJTh+ZJ6Rqiw1j4fYSUQ2mLzdCjg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "e3895b49-fc23-4461-a42b-643fc50fadaf",
+                            SecurityStamp = "00000000-0000-0000-0000-000000000000",
                             TwoFactorEnabled = false,
                             UserName = "system@localhost"
                         });
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Budget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TripId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Budgets");
                 });
 
             modelBuilder.Entity("TravoAPI.Models.PackingItem", b =>
@@ -422,12 +464,16 @@ namespace TravoAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PackingListIcon")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TripId")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -443,43 +489,33 @@ namespace TravoAPI.Migrations
                         new
                         {
                             Id = 1,
-                            Category = 0,
                             Name = "Fancy Dinner",
+                            PackingListIcon = "fas fa-utensils",
+                            TripId = 0,
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 2,
-                            Category = 1,
-                            Name = "Beach Trip",
+                            Name = "Beach",
+                            PackingListIcon = "fas fa-umbrella-beach",
+                            TripId = 0,
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 3,
-                            Category = 2,
                             Name = "Business",
+                            PackingListIcon = "fas fa-briefcase",
+                            TripId = 0,
                             UserId = "SYSTEM"
                         },
                         new
                         {
                             Id = 4,
-                            Category = 3,
-                            Name = "Baby",
-                            UserId = "SYSTEM"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Category = 4,
                             Name = "Essentials",
-                            UserId = "SYSTEM"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Category = 5,
-                            Name = "Food",
+                            PackingListIcon = "fas fa-exclamation-circle",
+                            TripId = 0,
                             UserId = "SYSTEM"
                         });
                 });
@@ -570,6 +606,17 @@ namespace TravoAPI.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Budget", b =>
+                {
+                    b.HasOne("TravoAPI.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TravoAPI.Models.PackingItem", b =>

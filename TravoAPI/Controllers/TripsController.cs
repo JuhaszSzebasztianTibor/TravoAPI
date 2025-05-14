@@ -39,19 +39,12 @@ namespace TravoAPI.Controllers
             });
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetTrip(int id)
-        {
-            var trip = await _service.GetTripAsync(id);
-            if (trip == null) return NotFound();
-            return Ok(trip);
-        }
-
-        [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetMyTrips()
         {
-            var trips = await _service.GetAllTripsAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trips = await _service.GetTripsByUserAsync(userId);
+
             var result = trips.Select(t => new
             {
                 t.Id,
@@ -62,8 +55,32 @@ namespace TravoAPI.Controllers
                 Image = _service.GetAbsoluteUrl(t.Image),
                 t.UserId
             });
+
             return Ok(result);
         }
+
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetTrip(int id)
+        {
+            var trip = await _service.GetTripAsync(id);
+            if (trip == null) return NotFound();
+            // ensure user owns it
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (trip.UserId != userId) return Forbid();
+
+            return Ok(new
+            {
+                trip.Id,
+                trip.TripName,
+                trip.StartDate,
+                trip.EndDate,
+                trip.Description,
+                Image = _service.GetAbsoluteUrl(trip.Image),
+                trip.UserId
+            });
+        }
+
 
         [HttpPut("{id}")]
         [Consumes("multipart/form-data")]

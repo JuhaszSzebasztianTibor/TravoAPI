@@ -6,19 +6,13 @@ namespace TravoAPI.Models
     {
         public int Id { get; set; }
 
-        public PackingCategory Category { get; set; }
-
+        public int TripId { get; set; }
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
-        // Constructor initializing the collection
-        public List<PackingItem> Items { get; set; }
-
         public string Name { get; set; }
+        public string PackingListIcon { get; set; } = "fas fa-clipboard-list";
 
-        public PackingList()
-        {
-            Items = new List<PackingItem>();  // Ensure the collection is initialized in the constructor
-        }
+        public List<PackingItem> Items { get; set; } = new List<PackingItem>();
     }
 }

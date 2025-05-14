@@ -1,163 +1,122 @@
-﻿using TravoAPI.Data.Interfaces;
-using TravoAPI.Dtos.Packing;
-using TravoAPI.Models;
-using TravoAPI.Services.Interfaces;
-using System;
+﻿// Services/PackingService.cs
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TravoAPI.Data.Interfaces;
+using TravoAPI.Dtos.Packing;
+using TravoAPI.Models;
+using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Services
 {
     public class PackingService : IPackingService
     {
         private readonly IPackingRepository _repo;
+        public PackingService(IPackingRepository repo) => _repo = repo;
 
-        public PackingService(IPackingRepository repo)
+        public async Task<IEnumerable<PackingListDto>> GetAllListsAsync(string userId, int tripId)
+            => (await _repo.GetByUserAndTripAsync(userId, tripId)).Select(MapToDto);
+
+        public async Task<PackingListDto?> GetListByIdAsync(string userId, int tripId, int listId)
         {
-            _repo = repo;
+            var e = await _repo.GetByIdWithItemsAsync(listId);
+            if (e == null || e.UserId != userId || e.TripId != tripId) return null;
+            return MapToDto(e);
         }
 
-        public async Task<IEnumerable<PackingListDto>> GetAllListsAsync(string userId)
+        public async Task<PackingListDto> CreateListAsync(string userId, int tripId, PackingListDto dto)
         {
-            var lists = await _repo.GetByUserAsync(userId);
-            return lists.Select(MapToDto);
-        }
-
-        public async Task<PackingListDto?> GetListByIdAsync(int id, string userId)
-        {
-            // Only need the list metadata & items DTO'd; no need for full items collection load here
-            var list = await _repo.GetByIdAsync(id);
-            if (list == null || (list.UserId != "SYSTEM" && list.UserId != userId))
-                return null;
-            return MapToDto(list);
-        }
-
-        public async Task<PackingListDto> CreateListAsync(PackingListDto dto, string userId)
-        {
-            var entity = new PackingList
+            var e = new PackingList
             {
                 UserId = userId,
+                TripId = tripId,
                 Name = dto.Name,
-                Category = dto.Category,
+                PackingListIcon = dto.PackingListIcon,
                 Items = dto.Items.Select(i => new PackingItem
                 {
                     Name = i.Name,
-                    Quantity = i.Quantity.Value,
-                    IsChecked = i.IsChecked ?? false
+                    Quantity = i.Quantity,
+                    IsChecked = i.IsChecked
                 }).ToList()
             };
-            await _repo.AddAsync(entity);
-            await _repo.SaveChangesAsync();
-
-            dto.Id = entity.Id;
-            return dto;
+            await _repo.AddAsync(e); await _repo.SaveChangesAsync();
+            dto.Id = e.Id; return dto;
         }
 
-        public async Task<bool> UpdateListAsync(PackingListDto dto, string userId)
+        public async Task<bool> UpdateListAsync(string userId, int tripId, PackingListDto dto)
         {
-            var entity = await _repo.GetByIdWithItemsAsync(dto.Id);
-            if (entity == null || entity.UserId != userId)
-                return false;
-
-            entity.Name = dto.Name;
-            entity.Category = dto.Category;
-
-            // Replace items wholesale
-            entity.Items.Clear();
-            entity.Items.AddRange(dto.Items.Select(i => new PackingItem
+            var e = await _repo.GetByIdWithItemsAsync(dto.Id);
+            if (e == null || e.UserId != userId || e.TripId != tripId) return false;
+            e.Name = dto.Name; e.PackingListIcon = dto.PackingListIcon;
+            e.Items.Clear(); e.Items.AddRange(dto.Items.Select(i => new PackingItem
             {
                 Name = i.Name,
-                Quantity = i.Quantity.Value,
-                IsChecked = i.IsChecked ?? false
+                Quantity = i.Quantity,
+                IsChecked = i.IsChecked
             }));
-
-            _repo.Update(entity);
-            return await _repo.SaveChangesAsync();
+            _repo.Update(e); return await _repo.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteListAsync(int id, string userId)
+        public async Task<bool> DeleteListAsync(string userId, int tripId, int listId)
         {
-            var entity = await _repo.GetByIdWithItemsAsync(id);
-            if (entity == null || entity.UserId != userId)
-                return false;
-
-            _repo.Delete(entity);
-            return await _repo.SaveChangesAsync();
+            var e = await _repo.GetByIdWithItemsAsync(listId);
+            if (e == null || e.UserId != userId || e.TripId != tripId) return false;
+            _repo.Delete(e); return await _repo.SaveChangesAsync();
         }
 
-        public async Task<PackingItemDto?> AddItemToListAsync(int listId, PackingItemDto dto, string userId)
+        public async Task<PackingItemDto> AddItemToListAsync(int listId, string userId, PackingItemDto dto)
         {
-            var list = await _repo.GetByIdWithItemsAsync(listId);
-            if (list == null || (list.UserId != "SYSTEM" && list.UserId != userId))
-                return null;
-
-            var entity = new PackingItem
-            {
-                Name = dto.Name,
-                Quantity = dto.Quantity ?? 1,
-                IsChecked = dto.IsChecked ?? false
-            };
-            list.Items.Add(entity);
-            await _repo.SaveChangesAsync();
-
-            // Now entity.Id is set by EF
-            return new PackingItemDto
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Quantity = entity.Quantity,
-                IsChecked = entity.IsChecked
-            };
+            var l = await _repo.GetByIdWithItemsAsync(listId);
+            if (l == null || l.UserId != userId) return null!;
+            var i = new PackingItem { Name = dto.Name, Quantity = dto.Quantity, IsChecked = dto.IsChecked };
+            l.Items.Add(i); await _repo.SaveChangesAsync();
+            dto.Id = i.Id; return dto;
         }
 
-
-        public async Task<bool> UpdateItemAsync(int listId, int itemId, PackingItemDto itemDto, string userId)
+        public async Task<bool> UpdateItemAsync(int listId, int itemId, string userId, PackingItemDto dto)
         {
-            // Load with Items to ensure Items is populated
-            var list = await _repo.GetByIdWithItemsAsync(listId);
-            if (list == null || (list.UserId != userId && list.UserId != "SYSTEM"))
-                return false;
-
-            var item = list.Items.FirstOrDefault(i => i.Id == itemId);
-            if (item == null)
-                return false;
-
-            // Apply patch fields
-            item.Name = itemDto.Name ?? item.Name;
-            item.Quantity = itemDto.Quantity.HasValue ? itemDto.Quantity.Value : item.Quantity;
-            item.IsChecked = itemDto.IsChecked.HasValue ? itemDto.IsChecked.Value : item.IsChecked;
-
-            _repo.Update(list);
-            return await _repo.SaveChangesAsync();
+            var l = await _repo.GetByIdWithItemsAsync(listId);
+            if (l == null || l.UserId != userId) return false;
+            var i = l.Items.FirstOrDefault(x => x.Id == itemId);
+            if (i == null) return false;
+            i.Name = dto.Name; i.Quantity = dto.Quantity; i.IsChecked = dto.IsChecked;
+            _repo.Update(l); return await _repo.SaveChangesAsync();
         }
 
         public async Task<bool> RemoveItemAsync(int listId, int itemId, string userId)
         {
-            var list = await _repo.GetByIdWithItemsAsync(listId);
-            if (list == null || (list.UserId != userId && list.UserId != "SYSTEM"))
-                return false;
-
-            var item = list.Items.FirstOrDefault(i => i.Id == itemId);
-            if (item == null)
-                return false;
-
-            list.Items.Remove(item);
+            var l = await _repo.GetByIdWithItemsAsync(listId);
+            if (l == null || l.UserId != userId) return false;
+            var i = l.Items.FirstOrDefault(x => x.Id == itemId);
+            if (i == null) return false; l.Items.Remove(i);
             return await _repo.SaveChangesAsync();
         }
 
-        private static PackingListDto MapToDto(PackingList pl) => new PackingListDto
-        {
-            Id = pl.Id,
-            Name = pl.Name,
-            Category = pl.Category,
-            Items = pl.Items.Select(i => new PackingItemDto
+        public async Task<Dictionary<string, List<PackingItemDto>>> GetTemplatesAsync()
+            => (await _repo.GetByUserAsync("SYSTEM")).ToDictionary(
+                pl => pl.Name,
+                pl => pl.Items.Select(i => new PackingItemDto
+                {
+                    Id = i.Id,
+                    Name = i.Name,
+                    Quantity = i.Quantity,
+                    IsChecked = i.IsChecked
+                }).ToList()
+            );
+
+        private static PackingListDto MapToDto(PackingList pl)
+            => new PackingListDto
             {
-                Id = i.Id,
-                Name = i.Name,
-                Quantity = i.Quantity,
-                IsChecked = i.IsChecked
-            }).ToList()
-        };
+                Id = pl.Id,
+                Name = pl.Name,
+                PackingListIcon = pl.PackingListIcon,
+                Items = pl.Items.Select(i => new PackingItemDto
+                {
+                    Id = i.Id,
+                    Name = i.Name,
+                    Quantity = i.Quantity,
+                    IsChecked = i.IsChecked
+                }).ToList()
+            };
     }
 }

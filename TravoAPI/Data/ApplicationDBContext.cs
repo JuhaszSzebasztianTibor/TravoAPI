@@ -1,19 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Data/ApplicationDBContext.cs
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using TravoAPI.Models;
 using TravoAPI.Seed;
-using Microsoft.AspNetCore.Identity;
 
 namespace TravoAPI.Data
 {
     public class ApplicationDBContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
-        {
-            
-        }
+        public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options) { }
 
         public DbSet<Trip> Trips { get; set; }
+        public DbSet<Budget> Budgets { get; set; }
         public DbSet<PackingList> PackingLists { get; set; }
         public DbSet<PackingItem> PackingItems { get; set; }
 
@@ -31,13 +30,12 @@ namespace TravoAPI.Data
                 EmailConfirmed = true,
                 FirstName = "System",
                 LastName = "Account",
-                SecurityStamp = "00000000-0000-0000-0000-000000000000", // Static
-                ConcurrencyStamp = "11111111-1111-1111-1111-111111111111", // Static
-                PasswordHash = "AQAAAAEAACcQAAAAEKX8d2J2lULBw4mYx4Zx05wZIjgj6UeQ7GFXSJiJTh+ZJ6Rqiw1j4fYSUQ2mLzdCjg==" // Static
+                SecurityStamp = "00000000-0000-0000-0000-000000000000",
+                ConcurrencyStamp = "11111111-1111-1111-1111-111111111111",
+                PasswordHash = "AQAAAAEAACcQAAAAEKX8d2J2lULBw4mYx4Zx05wZIjgj6UeQ7GFXSJiJTh+ZJ6Rqiw1j4fYSUQ2mLzdCjg=="
             });
 
             PackingSeedData.Seed(builder);
         }
-
     }
 }
