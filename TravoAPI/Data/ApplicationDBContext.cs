@@ -16,6 +16,8 @@ namespace TravoAPI.Data
         public DbSet<PackingList> PackingLists { get; set; }
         public DbSet<PackingItem> PackingItems { get; set; }
 
+        public DbSet<Destination> Destinations { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

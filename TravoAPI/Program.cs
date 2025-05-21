@@ -11,6 +11,9 @@ using TravoAPI.Data.Repositories;
 using TravoAPI.Services;
 using TravoAPI.Services.Interfaces;
 using System.Text.Json.Serialization;
+using TravoAPI.Mapping;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -102,12 +105,20 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<ITripRepository, TripRepository>();
 builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IPackingRepository, PackingRepository>();
+builder.Services.AddScoped<IDestinationRepository, DestinationRepository>();
 
 // — Register Service Layer
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<IPackingService, PackingService>();
+builder.Services.AddScoped<IDestinationService, DestinationService>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+
+//Mapping
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 // — Controllers, Swagger
 builder.Services.AddControllers().AddJsonOptions(opts =>
@@ -115,7 +126,11 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
     // Serialize all enums as strings, e.g. BudgetStatus.Paid → "Paid"
     opts.JsonSerializerOptions.Converters
         .Add(new JsonStringEnumConverter());
-}); ;
+
+    // Corrected line - removed extra closing parenthesis
+    opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

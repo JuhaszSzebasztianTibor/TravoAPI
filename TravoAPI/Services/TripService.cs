@@ -21,17 +21,20 @@ namespace TravoAPI.Services
         private readonly ApplicationDBContext _dbContext;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<TripService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public TripService(
             IGenericRepository<Trip> repo,
             ApplicationDBContext dbContext,
             IWebHostEnvironment env,
-            ILogger<TripService> logger)
+            ILogger<TripService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _repo = repo;
             _dbContext = dbContext;
             _env = env;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<Trip> CreateTripAsync(string userId, TripDto dto)
@@ -132,18 +135,38 @@ namespace TravoAPI.Services
             return await _repo.SaveChangesAsync();
         }
 
-        public string GetAbsoluteUrl(string path) => path;
+        public string GetAbsoluteUrl(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return null;
+
+            // Already a full URL?
+            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return path;
+            }
+
+            // Otherwise it's relative to wwwroot
+            var request = _httpContextAccessor.HttpContext.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            var relative = path.StartsWith("/") ? path : "/" + path;
+            return baseUrl + relative;
+        }
+
 
         private async Task<string?> SaveImageAsync(TripDto dto, string? existingPath = null)
         {
             if (dto.ImageFile != null)
             {
-                // delete old file if needed
+                // Log to check if image is received
+                _logger.LogInformation("Received ImageFile: " + dto.ImageFile.FileName);
+
+                // Existing image removal logic
                 if (!string.IsNullOrEmpty(existingPath) && existingPath.StartsWith("Uploads/"))
                 {
                     var old = Path.Combine(_env.WebRootPath, existingPath.TrimStart('/'));
-                    if (File.Exists(old))
-                        File.Delete(old);
+                    if (File.Exists(old)) File.Delete(old);
                 }
 
                 var folder = Path.Combine(_env.WebRootPath, "Uploads");
@@ -158,11 +181,16 @@ namespace TravoAPI.Services
                 return $"Uploads/{fileName}";
             }
 
-            // if no file, use URL or keep existing
-            return string.IsNullOrWhiteSpace(dto.ImageUrl)
-                ? existingPath
-                : dto.ImageUrl;
+            // If no file is provided, use the URL or keep existing path
+            if (!string.IsNullOrEmpty(dto.ImageUrl))
+            {
+                // Here you could validate the URL format if needed
+                return dto.ImageUrl;
+            }
+
+            return existingPath; 
         }
+
 
         public async Task<bool> ValidateTripOwnership(string userId, int tripId)
         {

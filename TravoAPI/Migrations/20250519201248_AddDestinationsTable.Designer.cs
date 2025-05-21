@@ -12,8 +12,8 @@ using TravoAPI.Data;
 namespace TravoAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20250514120649_FixPackingListTable")]
-    partial class FixPackingListTable
+    [Migration("20250519201248_AddDestinationsTable")]
+    partial class AddDestinationsTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -298,6 +298,80 @@ namespace TravoAPI.Migrations
                     b.ToTable("Budgets");
                 });
 
+            modelBuilder.Entity("TravoAPI.Models.DayPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TripId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TripId");
+
+                    b.ToTable("DayPlan");
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Destination", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Nights")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TripId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TripId");
+
+                    b.ToTable("Destinations");
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Note", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PlaceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaceId");
+
+                    b.ToTable("Note");
+                });
+
             modelBuilder.Entity("TravoAPI.Models.PackingItem", b =>
                 {
                     b.Property<int>("Id")
@@ -520,6 +594,36 @@ namespace TravoAPI.Migrations
                         });
                 });
 
+            modelBuilder.Entity("TravoAPI.Models.Place", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DayPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Time")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DayPlanId");
+
+                    b.ToTable("Place");
+                });
+
             modelBuilder.Entity("TravoAPI.Models.Trip", b =>
                 {
                     b.Property<int>("Id")
@@ -619,6 +723,39 @@ namespace TravoAPI.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TravoAPI.Models.DayPlan", b =>
+                {
+                    b.HasOne("TravoAPI.Models.Trip", "Trip")
+                        .WithMany("DayPlans")
+                        .HasForeignKey("TripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trip");
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Destination", b =>
+                {
+                    b.HasOne("TravoAPI.Models.Trip", "Trip")
+                        .WithMany("Destinations")
+                        .HasForeignKey("TripId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trip");
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Note", b =>
+                {
+                    b.HasOne("TravoAPI.Models.Place", "Place")
+                        .WithMany("Notes")
+                        .HasForeignKey("PlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Place");
+                });
+
             modelBuilder.Entity("TravoAPI.Models.PackingItem", b =>
                 {
                     b.HasOne("TravoAPI.Models.PackingList", "PackingList")
@@ -641,6 +778,17 @@ namespace TravoAPI.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TravoAPI.Models.Place", b =>
+                {
+                    b.HasOne("TravoAPI.Models.DayPlan", "DayPlan")
+                        .WithMany("Places")
+                        .HasForeignKey("DayPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DayPlan");
+                });
+
             modelBuilder.Entity("TravoAPI.Models.Trip", b =>
                 {
                     b.HasOne("TravoAPI.Models.ApplicationUser", "User")
@@ -652,9 +800,26 @@ namespace TravoAPI.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TravoAPI.Models.DayPlan", b =>
+                {
+                    b.Navigation("Places");
+                });
+
             modelBuilder.Entity("TravoAPI.Models.PackingList", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Place", b =>
+                {
+                    b.Navigation("Notes");
+                });
+
+            modelBuilder.Entity("TravoAPI.Models.Trip", b =>
+                {
+                    b.Navigation("DayPlans");
+
+                    b.Navigation("Destinations");
                 });
 #pragma warning restore 612, 618
         }
