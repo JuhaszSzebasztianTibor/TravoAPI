@@ -1,9 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace TravoAPI.Dtos.Budget
 {
-    public class CreateBudgetDto
+    public class BudgetDto
     {
+        [BindNever]
+        public int Id { get; set; }
+
+        [BindNever]
+        public int TripId { get; set; }
+
+        [BindNever]
+        public string UserId { get; set; }
+
         [Required]
         public DateTime Day { get; set; }
 
@@ -15,7 +26,6 @@ namespace TravoAPI.Dtos.Budget
 
         [Required]
         public decimal Amount { get; set; }
-
 
         [Required]
         [RegularExpression("Pending|Paid")]

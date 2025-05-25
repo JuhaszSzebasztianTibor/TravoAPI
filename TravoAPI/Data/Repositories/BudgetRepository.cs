@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Data/Repositories/BudgetRepository.cs
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using TravoAPI.Data.Interfaces;
@@ -37,13 +40,31 @@ namespace TravoAPI.Data.Repositories
             => (await _context.SaveChangesAsync()) > 0;
 
         public async Task<IEnumerable<Budget>> GetByUserAsync(string userId)
+            => await _dbSet
+                 .Where(b => b.UserId == userId)
+                 .OrderByDescending(b => b.Day)
+                 .ToListAsync();
+
+        // simple filter-only FindAsync
+        public async Task<IEnumerable<Budget>> FindAsync(
+            Expression<Func<Budget, bool>> predicate
+        )
         {
-            return await _dbSet
-                .Where(b => b.UserId == userId)
-                .OrderByDescending(b => b.Day)
-                .ToListAsync();
+            return await _dbSet.Where(predicate).ToListAsync();
         }
 
-
+        // filter + eager-load includes overload
+        public async Task<IEnumerable<Budget>> FindAsync(
+            Expression<Func<Budget, bool>> predicate,
+            params Expression<Func<Budget, object>>[] includes
+        )
+        {
+            IQueryable<Budget> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return await query.Where(predicate).ToListAsync();
+        }
     }
 }

@@ -1,59 +1,65 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using TravoAPI.Dtos.Budget;
 using TravoAPI.Services.Interfaces;
 
-[Authorize]
-[ApiController]
-[Route("api/trips/{tripId}/budgets")]
-public class BudgetsController : ControllerBase
+namespace TravoAPI.Controllers
 {
-    private readonly IBudgetService _service;
-    public BudgetsController(IBudgetService service) => _service = service;
-
-    [HttpPost]
-    public async Task<IActionResult> CreateBudget(int tripId, CreateBudgetDto dto)
+    [Authorize]
+    [ApiController]
+    [Route("api/trips/{tripId}/budgets")]
+    public class BudgetsController : ControllerBase
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var budget = await _service.CreateBudgetAsync(userId, tripId, dto);
-        return CreatedAtAction(nameof(GetBudget),
-            new { tripId, id = budget.Id }, budget);
-    }
+        private readonly IBudgetService _service;
+        public BudgetsController(IBudgetService service) => _service = service;
 
-    [HttpGet]
-    public async Task<IActionResult> GetBudgets(int tripId)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var budgets = await _service.GetBudgetsByTripAsync(userId, tripId);
-        return Ok(budgets);
-    }
+        private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetBudget(int tripId, int id)
-    {
-        var budget = await _service.GetBudgetAsync(id);
-        if (budget == null || budget.TripId != tripId) return NotFound();
+        [HttpPost]
+        public async Task<IActionResult> CreateBudget(
+            int tripId,
+            [FromBody] BudgetCreateDto dto)
+        {
+            var result = await _service.CreateBudgetAsync(UserId, tripId, dto);
+            return CreatedAtAction(nameof(GetBudget),
+                new { tripId, id = result.Id }, result);
+        }
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (budget.UserId != userId) return Forbid();
+        [HttpGet]
+        public async Task<IActionResult> GetBudgets(int tripId)
+        {
+            var list = await _service.GetBudgetsByTripAsync(UserId, tripId);
+            return Ok(list);
+        }
 
-        return Ok(budget);
-    }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBudget(int tripId, int id)
+        {
+            var dto = await _service.GetBudgetAsync(id);
+            if (dto == null || dto.TripId != tripId) return NotFound();
+            if (dto.UserId != UserId) return Forbid();
+            return Ok(dto);
+        }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBudget(int tripId, int id, UpdateBudgetDto dto)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var updated = await _service.UpdateBudgetAsync(userId, tripId, id, dto);
-        return updated != null ? Ok(updated) : NotFound();
-    }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateBudget(
+            int tripId,
+            int id,
+            [FromBody] BudgetCreateDto dto)    
+        {
+            var updated = await _service.UpdateBudgetAsync(
+                UserId, tripId, id, dto);
+            return updated != null ? Ok(updated) : NotFound();
+        }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteBudget(int tripId, int id)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var success = await _service.DeleteBudgetAsync(userId, tripId, id);
-        return success ? NoContent() : NotFound();
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBudget(int tripId, int id)
+        {
+            var success = await _service.DeleteBudgetAsync(
+                UserId, tripId, id);
+            return success ? NoContent() : NotFound();
+        }
     }
 }

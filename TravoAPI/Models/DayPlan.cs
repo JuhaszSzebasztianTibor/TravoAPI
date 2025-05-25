@@ -10,6 +10,7 @@ namespace TravoAPI.Models
         public int Id { get; set; }
         public int TripId { get; set; }
         public Trip Trip { get; set; }
+        public string Location { get; set; }
 
         [Required]
         public DateTime Date { get; set; }

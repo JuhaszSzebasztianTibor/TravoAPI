@@ -14,6 +14,8 @@ using System.Text.Json.Serialization;
 using TravoAPI.Mapping;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,12 +109,17 @@ builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<IPackingRepository, PackingRepository>();
 builder.Services.AddScoped<IDestinationRepository, DestinationRepository>();
 
+
+
 // — Register Service Layer
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITripService, TripService>();
 builder.Services.AddScoped<IBudgetService, BudgetService>();
 builder.Services.AddScoped<IPackingService, PackingService>();
 builder.Services.AddScoped<IDestinationService, DestinationService>();
+builder.Services.AddScoped<IDayPlanService, DayPlanService>();
+builder.Services.AddScoped<IPlaceService, PlaceService>();
+builder.Services.AddScoped<INoteService, NoteService>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
@@ -129,6 +136,9 @@ builder.Services.AddControllers().AddJsonOptions(opts =>
 
     // Corrected line - removed extra closing parenthesis
     opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+
+    //EF navigation loops (DayPlan→Place→DayPlan, Place→Note→Place) don’t crash serialization:
+    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
 builder.Services.AddEndpointsApiExplorer();

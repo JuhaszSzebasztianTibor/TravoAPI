@@ -19,26 +19,28 @@ public class TripsController : ControllerBase
         _mapper = mapper;
     }
 
+    // GET /api/trips
     [HttpGet]
     public async Task<IActionResult> GetMyTrips()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        // 1) Fetch your Trip entities
         var trips = await _service.GetTripsByUserAsync(userId);
+
         var payload = trips.Select(t => new {
             id = t.Id,
             tripName = t.TripName,
             description = t.Description,
             startDate = t.StartDate,
             endDate = t.EndDate,
-            imageUrl = _service.GetAbsoluteUrl(t.Image) ?? ""
+            imageUrl = t.Image != null && t.Image.StartsWith("Uploads/", StringComparison.OrdinalIgnoreCase)
+                          ? _service.GetAbsoluteUrl(t.Image)
+                          : t.Image ?? ""
         }).ToList();
 
-        // 3) Return that list—guaranteed to include imageUrl on every object
         return Ok(payload);
     }
 
+    // GET /api/trips/{id}
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetTrip(int id)
     {
@@ -49,10 +51,14 @@ public class TripsController : ControllerBase
         if (trip.UserId != userId) return Forbid();
 
         var dto = _mapper.Map<TripDto>(trip);
-        dto.ImageUrl = _service.GetAbsoluteUrl(trip.Image);
+        dto.ImageUrl = trip.Image != null && trip.Image.StartsWith("Uploads/", StringComparison.OrdinalIgnoreCase)
+                       ? _service.GetAbsoluteUrl(trip.Image)
+                       : trip.Image;
+
         return Ok(dto);
     }
 
+    // POST /api/trips
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> CreateTrip([FromForm] TripDto dto)
@@ -61,11 +67,14 @@ public class TripsController : ControllerBase
         var trip = await _service.CreateTripAsync(userId, dto);
 
         var result = _mapper.Map<TripDto>(trip);
-        result.ImageUrl = _service.GetAbsoluteUrl(trip.Image);
+        result.ImageUrl = trip.Image != null && trip.Image.StartsWith("Uploads/", StringComparison.OrdinalIgnoreCase)
+                          ? _service.GetAbsoluteUrl(trip.Image)
+                          : trip.Image;
 
         return CreatedAtAction(nameof(GetTrip), new { id = trip.Id }, result);
     }
 
+    // PUT /api/trips/{id}
     [HttpPut("{id}")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UpdateTrip(int id, [FromForm] TripDto dto)
@@ -75,10 +84,14 @@ public class TripsController : ControllerBase
         if (updated == null) return NotFound();
 
         var result = _mapper.Map<TripDto>(updated);
-        result.ImageUrl = _service.GetAbsoluteUrl(updated.Image);
+        result.ImageUrl = updated.Image != null && updated.Image.StartsWith("Uploads/", StringComparison.OrdinalIgnoreCase)
+                          ? _service.GetAbsoluteUrl(updated.Image)
+                          : updated.Image;
+
         return Ok(result);
     }
 
+    // DELETE /api/trips/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTrip(int id)
     {
@@ -87,4 +100,3 @@ public class TripsController : ControllerBase
         return success ? NoContent() : NotFound();
     }
 }
-

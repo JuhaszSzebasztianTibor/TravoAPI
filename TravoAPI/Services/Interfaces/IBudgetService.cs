@@ -3,9 +3,9 @@ using TravoAPI.Models;
 
 public interface IBudgetService
 {
-    Task<Budget> CreateBudgetAsync(string userId, int tripId, CreateBudgetDto dto);
-    Task<IEnumerable<Budget>> GetBudgetsByTripAsync(string userId, int tripId);
-    Task<Budget> GetBudgetAsync(int id);
-    Task<Budget> UpdateBudgetAsync(string userId, int tripId, int id, UpdateBudgetDto dto);
+    Task<BudgetDto> CreateBudgetAsync(string userId, int tripId, BudgetCreateDto dto);
+    Task<IEnumerable<BudgetDto>> GetBudgetsByTripAsync(string userId, int tripId);
+    Task<BudgetDto> GetBudgetAsync(int id);
+    Task<BudgetDto> UpdateBudgetAsync(string userId, int tripId, int id, BudgetCreateDto dto);
     Task<bool> DeleteBudgetAsync(string userId, int tripId, int id);
 }
