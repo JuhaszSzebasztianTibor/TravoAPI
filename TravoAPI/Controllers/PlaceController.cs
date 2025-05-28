@@ -22,6 +22,16 @@ namespace TravoAPI.Controllers
             return Ok(places);
         }
 
+        // GET /api/dayplans/{dayPlanId}/places
+        [HttpGet("api/dayplans/{dayPlanId}/places")]
+        public async Task<IActionResult> GetByDayPlan(int dayPlanId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var places = await _svc.GetByDayPlanAsync(userId, dayPlanId);
+            return Ok(places);
+        }
+
+
         // POST /api/dayplans/{dayPlanId}/places
         [HttpPost("api/dayplans/{dayPlanId}/places")]
         public async Task<IActionResult> Create(int dayPlanId, [FromBody] PlaceDto dto)

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TravoAPI.Data;
 
@@ -11,9 +12,11 @@ using TravoAPI.Data;
 namespace TravoAPI.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250528085817_DayPlanDestinationLink")]
+    partial class DayPlanDestinationLink
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -608,9 +611,6 @@ namespace TravoAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("DayNumber")
-                        .HasColumnType("int");
-
                     b.Property<int>("DayPlanId")
                         .HasColumnType("int");
 
@@ -745,9 +745,9 @@ namespace TravoAPI.Migrations
             modelBuilder.Entity("TravoAPI.Models.DayPlan", b =>
                 {
                     b.HasOne("TravoAPI.Models.Destination", "Destination")
-                        .WithMany("DayPlans")
+                        .WithMany()
                         .HasForeignKey("DestinationId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("TravoAPI.Models.Trip", "Trip")
@@ -830,11 +830,6 @@ namespace TravoAPI.Migrations
             modelBuilder.Entity("TravoAPI.Models.DayPlan", b =>
                 {
                     b.Navigation("Places");
-                });
-
-            modelBuilder.Entity("TravoAPI.Models.Destination", b =>
-                {
-                    b.Navigation("DayPlans");
                 });
 
             modelBuilder.Entity("TravoAPI.Models.PackingList", b =>

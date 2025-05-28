@@ -10,6 +10,9 @@ namespace TravoAPI.Models
         public int Id { get; set; }
         public int TripId { get; set; }
         public Trip Trip { get; set; }
+
+        public int DestinationId { get; set; }
+        public Destination Destination { get; set; }
         public string Location { get; set; }
 
         [Required]

@@ -15,5 +15,7 @@ namespace TravoAPI.Models
         public double Longitude { get; set; }
         [Range(1, 365)]
         public int Nights { get; set; }
+
+        public ICollection<DayPlan> DayPlans { get; set; }
     }
 }

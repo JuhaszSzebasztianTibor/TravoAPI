@@ -39,6 +39,14 @@ namespace TravoAPI.Migrations
                 principalTable: "Trips",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+            
+            migrationBuilder.AddForeignKey(
+                name: "FK_DayPlans_Destinations_DestinationId",
+                table: "DayPlans",
+                column: "DestinationId",
+                principalTable: "Destinations",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
@@ -71,6 +79,14 @@ namespace TravoAPI.Migrations
                 table: "Destination",
                 column: "TripId",
                 principalTable: "Trips",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_DayPlans_Destinations_DestinationId",
+                table: "DayPlans",
+                column: "DestinationId",
+                principalTable: "Destinations",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }

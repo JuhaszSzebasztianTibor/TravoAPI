@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
+using TravoAPI.Dtos.Planner;
 using TravoAPI.Dtos.Budget;
 using TravoAPI.Dtos.CreateTrip;
 using TravoAPI.Dtos.Packing;
-using TravoAPI.Dtos.Planner;
 using TravoAPI.Models;
 using TravoAPI.Models.Enums;
 
@@ -19,28 +19,41 @@ namespace TravoAPI.Mapping
                 .ReverseMap()
                 .ForMember(t => t.Id, opt => opt.Ignore());
 
-            // Destination <=>DestinationDto
+            // Destination <=> DestinationDto
             CreateMap<Destination, DestinationDto>().ReverseMap();
 
-            // DayPla n<=> DayPlanDto
+            // === DayPlan mappings ===
+
+            // Incoming DTO → Entity
+            CreateMap<DayPlanDto, DayPlan>()
+                .ForMember(dp => dp.Places, opt => opt.Ignore())
+                .ForMember(dp => dp.Destination, opt => opt.Ignore())
+                .ForMember(dp => dp.TripId, opt => opt.MapFrom(dto => dto.TripId))
+                .ForMember(dp => dp.DestinationId, opt => opt.MapFrom(dto => dto.DestinationId));
+
+            // Outgoing Entity → DTO
             CreateMap<DayPlan, DayPlanDto>()
-                           .ForMember(dto => dto.Location, opt => opt.MapFrom(dp => dp.Location))
-                           .ForMember(dto => dto.Places, opt => opt.MapFrom(dp => dp.Places))
-                           .ReverseMap()
-                           .ForMember(dp => dp.Places, opt => opt.Ignore());
+                .ForMember(dto => dto.Places, opt => opt.MapFrom(src => src.Places));
 
-            // Place <=> PlaceDto
+            // === Place mappings ===
+
+            // Outgoing Entity → DTO
             CreateMap<Place, PlaceDto>()
-                // expose TripId on the DTO
+                .ForMember(dest => dest.DayPlanId,
+                           opt => opt.MapFrom(src => src.DayPlanId))
                 .ForMember(dest => dest.TripId,
-                           opt => opt.MapFrom(src => src.DayPlan.TripId))
-                .ReverseMap()
-                // <<< Prevent AutoMapper from creating a new DayPlan entity >>>
-                .ForMember(dest => dest.DayPlan, opt => opt.Ignore());
+                           opt => opt.MapFrom(src => src.DayPlan.TripId));
 
-            // Note <=> NoteDto
+            // Incoming DTO → Entity
+            CreateMap<PlaceDto, Place>()
+                .ForMember(p => p.DayPlan, opt => opt.Ignore())
+                .ForMember(p => p.Id, opt => opt.Ignore());
+
+            // === Note mappings ===
+
             CreateMap<Note, NoteDto>().ReverseMap();
 
+            // === Packing list mappings ===
 
             CreateMap<PackingList, PackingListDto>()
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
@@ -49,13 +62,13 @@ namespace TravoAPI.Mapping
                 .ForMember(dest => dest.UserId, opt => opt.Ignore())
                 .ForMember(dest => dest.TripId, opt => opt.Ignore());
 
-            // PackingItem <=> PackingItemDto
             CreateMap<PackingItem, PackingItemDto>()
                 .ReverseMap()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.PackingList, opt => opt.Ignore());
 
-            // BudgetCreateDto → Budget 
+            // === Budget mappings ===
+
             CreateMap<BudgetCreateDto, Budget>()
                 .ForMember(d => d.Id, o => o.Ignore())
                 .ForMember(d => d.UserId, o => o.Ignore())
@@ -63,11 +76,9 @@ namespace TravoAPI.Mapping
                 .ForMember(d => d.Status,
                            o => o.MapFrom(src => Enum.Parse<BudgetStatus>(src.Status)));
 
-            // Budget → BudgetDto (reply to client)
             CreateMap<Budget, BudgetDto>()
                 .ForMember(d => d.Status,
                            o => o.MapFrom(src => src.Status.ToString()));
-
         }
     }
 }

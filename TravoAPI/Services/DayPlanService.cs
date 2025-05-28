@@ -1,5 +1,4 @@
-﻿// Services/DayPlanService.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -15,7 +14,7 @@ namespace TravoAPI.Services
     public class DayPlanService : IDayPlanService
     {
         private readonly ApplicationDBContext _context;
-        private readonly IGenericRepository<DayPlan> _repo;     // for Create/Delete/etc.
+        private readonly IGenericRepository<DayPlan> _repo;
         private readonly IMapper _mapper;
 
         public DayPlanService(
@@ -31,32 +30,33 @@ namespace TravoAPI.Services
 
         public async Task<DayPlanDto> AddDayPlanAsync(DayPlanDto dto)
         {
+            // map incoming DTO → entity
             var entity = _mapper.Map<DayPlan>(dto);
+
+            // ensure FKs are set
+            entity.TripId = dto.TripId;
+            entity.DestinationId = dto.DestinationId;
+            entity.Date = dto.Date;
+            entity.Location = dto.Location;
+
             await _repo.AddAsync(entity);
             await _repo.SaveChangesAsync();
+
+            // map back entity → DTO (now that Id is generated)
             return _mapper.Map<DayPlanDto>(entity);
         }
 
         public async Task<IEnumerable<DayPlanDto>> GetByTripIdAsync(int tripId)
         {
-            try
-            {
-                // directly use the DbContext to include navigations:
-                var entities = await _context.DayPlans
-                    .AsNoTracking()
-                    .Where(dp => dp.TripId == tripId)
-                    .Include(dp => dp.Places)
-                       .ThenInclude(p => p.Notes)
-                    .ToListAsync();
+            var entities = await _context.DayPlans
+              .Where(dp => dp.TripId == tripId)
+              .Include(dp => dp.Destination)
+              .Include(dp => dp.Places)
+                  .ThenInclude(p => p.Notes)
+              .Include(dp => dp.Places)
+              .ToListAsync();
 
-                return _mapper.Map<IEnumerable<DayPlanDto>>(entities);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"🔥 ERROR in GetByTripIdAsync: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-                throw;
-            }
+            return _mapper.Map<IEnumerable<DayPlanDto>>(entities);
         }
 
         public async Task<DayPlanDto> GetByIdAsync(int id)

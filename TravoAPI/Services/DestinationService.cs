@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TravoAPI.Data.Interfaces;
 using TravoAPI.Dtos.Planner;
 using TravoAPI.Models;
@@ -10,15 +13,16 @@ namespace TravoAPI.Services
     {
         private readonly IDestinationRepository _repo;
         private readonly IMapper _mapper;
+
         public DestinationService(IDestinationRepository repo, IMapper mapper)
         {
             _repo = repo;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<DestinationDto>> GetAllAsync(int tripId) =>
-            (await _repo.GetByTripAsync(tripId))
-               .Select(d => _mapper.Map<DestinationDto>(d));
+        public async Task<IEnumerable<DestinationDto>> GetAllAsync(int tripId)
+            => (await _repo.GetByTripAsync(tripId))
+                   .Select(d => _mapper.Map<DestinationDto>(d));
 
         public async Task<DestinationDto> CreateAsync(int tripId, DestinationDto dto)
         {
@@ -31,9 +35,17 @@ namespace TravoAPI.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _repo.GetByIdAsync(id);
-            if (entity == null) return false;
-            _repo.Delete(entity);
+            // 1) Load destination with its DayPlans (and Places)
+            var dest = await _repo.GetWithDayPlansAsync(id);
+            if (dest == null) return false;
+
+            // 2) Delete all its DayPlans (their Places cascade‐delete)
+            _repo.DeleteDayPlans(dest.DayPlans);
+
+            // 3) Delete the destination
+            _repo.Delete(dest);
+
+            // 4) Commit all deletes in one SaveChanges call
             return await _repo.SaveChangesAsync();
         }
 

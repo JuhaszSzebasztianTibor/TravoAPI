@@ -35,16 +35,15 @@ namespace TravoAPI.Services
             _context.Places.Add(entity);
             await _context.SaveChangesAsync();
 
-            // 3) Reload DayPlan navigation so AutoMapper can read TripId
+            // 3) Load the DayPlan→Trip so we can return TripId
             await _context.Entry(entity)
                           .Reference(e => e.DayPlan)
                           .Query()
                           .Include(d => d.Trip)
                           .LoadAsync();
 
-            // 4) Map back to DTO (TripId is now populated)
-            var result = _mapper.Map<PlaceDto>(entity);
-            return result;
+            // 4) Map back to DTO (includes TripId)
+            return _mapper.Map<PlaceDto>(entity);
         }
 
         public async Task<IEnumerable<PlaceDto>> GetByDayPlanAsync(string userId, int dayPlanId)
