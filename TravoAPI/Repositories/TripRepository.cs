@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TravoAPI.Data.Interfaces;
+using TravoAPI.Data;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 
-namespace TravoAPI.Data.Repositories
+namespace TravoAPI.Repositories
 {
     public class TripRepository : GenericRepository<Trip>, ITripRepository
     {

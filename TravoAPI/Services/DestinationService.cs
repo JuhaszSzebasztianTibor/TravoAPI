@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TravoAPI.Data.Interfaces;
 using TravoAPI.Dtos.Planner;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Services

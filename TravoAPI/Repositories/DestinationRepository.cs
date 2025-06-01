@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TravoAPI.Data.Interfaces;
+using TravoAPI.Data;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 
-namespace TravoAPI.Data.Repositories
+namespace TravoAPI.Repositories
 {
     public class DestinationRepository : GenericRepository<Destination>, IDestinationRepository
     {

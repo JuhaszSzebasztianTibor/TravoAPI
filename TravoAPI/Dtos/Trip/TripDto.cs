@@ -11,7 +11,7 @@ namespace TravoAPI.Dtos.CreateTrip
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Description { get; set; }
-        public IFormFile? ImageFile { get; set; }   // nullable
+        public IFormFile? ImageFile { get; set; } 
         public string? ImageUrl { get; set; }
 
         public List<DestinationDto>? Destinations { get; set; }

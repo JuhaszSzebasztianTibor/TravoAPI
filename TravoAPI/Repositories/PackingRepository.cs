@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using TravoAPI.Data.Interfaces;
+using TravoAPI.Data;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 
-namespace TravoAPI.Data.Repositories
+namespace TravoAPI.Repositories
 {
     public class PackingRepository : IPackingRepository
     {
@@ -42,7 +43,7 @@ namespace TravoAPI.Data.Repositories
             => await _dbSet.Where(pl => pl.UserId == userId && pl.TripId == tripId)
                            .Include(pl => pl.Items).ToListAsync();
 
-        public async Task<bool> SaveChangesAsync() => (await _context.SaveChangesAsync()) > 0;
+        public async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
     }
 }
 

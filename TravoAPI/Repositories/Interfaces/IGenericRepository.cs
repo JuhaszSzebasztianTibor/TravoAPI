@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace TravoAPI.Data.Interfaces
+namespace TravoAPI.Repositories.Interfaces
 {
     public interface IGenericRepository<TEntity> where TEntity : class
     {
@@ -12,11 +12,8 @@ namespace TravoAPI.Data.Interfaces
         void Delete(TEntity entity);
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<TEntity> GetByIdAsync(int id);
-
-        // filter only
         Task<IEnumerable<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate);
 
-        // filter + eager-load
         Task<IEnumerable<TEntity>> FindAsync(
             Expression<Func<TEntity, bool>> predicate,
             params Expression<Func<TEntity, object>>[] includes

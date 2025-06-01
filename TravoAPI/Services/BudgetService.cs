@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using TravoAPI.Data.Interfaces;
 using TravoAPI.Dtos.Budget;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Services

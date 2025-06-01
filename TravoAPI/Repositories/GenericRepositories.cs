@@ -6,9 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using TravoAPI.Data;
-using TravoAPI.Data.Interfaces;
+using TravoAPI.Repositories.Interfaces;
 
-namespace TravoAPI.Data.Repositories
+namespace TravoAPI.Repositories
 {
     public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         where TEntity : class
@@ -51,6 +51,6 @@ namespace TravoAPI.Data.Repositories
             => _db.Update(entity);
 
         public async Task<bool> SaveChangesAsync()
-            => (await _context.SaveChangesAsync()) > 0;
+            => await _context.SaveChangesAsync() > 0;
     }
 }

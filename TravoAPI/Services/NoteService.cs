@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using TravoAPI.Data.Interfaces;
 using TravoAPI.Dtos.Planner;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Services

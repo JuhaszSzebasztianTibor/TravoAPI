@@ -6,8 +6,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using TravoAPI.Data;
 using TravoAPI.Models;
-using TravoAPI.Data.Interfaces;
-using TravoAPI.Data.Repositories;
 using TravoAPI.Services;
 using TravoAPI.Services.Interfaces;
 using System.Text.Json.Serialization;
@@ -15,6 +13,8 @@ using TravoAPI.Mapping;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TravoAPI.Repositories;
+using TravoAPI.Repositories.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);

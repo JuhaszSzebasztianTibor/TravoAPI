@@ -1,6 +1,6 @@
 ﻿using TravoAPI.Models;
 
-namespace TravoAPI.Data.Interfaces
+namespace TravoAPI.Repositories.Interfaces
 {
     public interface IBudgetRepository : IGenericRepository<Budget>
     {

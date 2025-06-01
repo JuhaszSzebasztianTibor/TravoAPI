@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TravoAPI.Data;
-using TravoAPI.Data.Interfaces;
 using TravoAPI.Dtos.CreateTrip;
 using TravoAPI.Models;
 using TravoAPI.Models.Enums;
+using TravoAPI.Repositories.Interfaces;
 using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Services

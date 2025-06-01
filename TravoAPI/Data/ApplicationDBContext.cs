@@ -22,7 +22,6 @@ namespace TravoAPI.Data
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            // 1) KEEP identity's defaults
             base.OnModelCreating(builder);
 
             builder.Entity<Destination>()
@@ -37,7 +36,6 @@ namespace TravoAPI.Data
                    .HasForeignKey(p => p.DayPlanId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            // 4) YOUR SEED DATA (unchanged)
             builder.Entity<ApplicationUser>().HasData(new ApplicationUser
             {
                 Id = "SYSTEM",

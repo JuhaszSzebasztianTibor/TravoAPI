@@ -12,6 +12,7 @@ public class TripsController : ControllerBase
 {
     private readonly ITripService _service;
     private readonly IMapper _mapper;
+    private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     public TripsController(ITripService service, IMapper mapper)
     {
@@ -23,9 +24,7 @@ public class TripsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyTrips()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var trips = await _service.GetTripsByUserAsync(userId);
-
+        var trips = await _service.GetTripsByUserAsync(UserId);
         var payload = trips.Select(t => new {
             id = t.Id,
             tripName = t.TripName,
@@ -47,8 +46,7 @@ public class TripsController : ControllerBase
         var trip = await _service.GetTripAsync(id);
         if (trip == null) return NotFound();
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (trip.UserId != userId) return Forbid();
+        if (trip.UserId != UserId) return Forbid();
 
         var dto = _mapper.Map<TripDto>(trip);
         dto.ImageUrl = trip.Image != null && trip.Image.StartsWith("Uploads/", StringComparison.OrdinalIgnoreCase)
@@ -63,8 +61,7 @@ public class TripsController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> CreateTrip([FromForm] TripDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var trip = await _service.CreateTripAsync(userId, dto);
+        var trip = await _service.CreateTripAsync(UserId, dto);
 
         var result = _mapper.Map<TripDto>(trip);
         result.ImageUrl = trip.Image != null && trip.Image.StartsWith("Uploads/", StringComparison.OrdinalIgnoreCase)
@@ -79,8 +76,7 @@ public class TripsController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UpdateTrip(int id, [FromForm] TripDto dto)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var updated = await _service.UpdateTripAsync(userId, id, dto);
+        var updated = await _service.UpdateTripAsync(UserId, id, dto);
         if (updated == null) return NotFound();
 
         var result = _mapper.Map<TripDto>(updated);
@@ -95,8 +91,7 @@ public class TripsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteTrip(int id)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var success = await _service.DeleteTripAsync(userId, id);
+        var success = await _service.DeleteTripAsync(UserId, id);
         return success ? NoContent() : NotFound();
     }
 }

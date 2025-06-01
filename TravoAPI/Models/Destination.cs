@@ -13,6 +13,7 @@ namespace TravoAPI.Models
         public string Name { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        
         [Range(1, 365)]
         public int Nights { get; set; }
 

@@ -47,7 +47,6 @@ namespace TravoAPI.Controllers
             }
             catch (Exception ex)
             {
-                // during dev, send back the full exception details
                 return Problem(detail: ex.InnerException?.Message ?? ex.Message, statusCode: 500);
             }
         }

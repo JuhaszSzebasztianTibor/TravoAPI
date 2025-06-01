@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using TravoAPI.Models;
 
-namespace TravoAPI.Data.Interfaces
+namespace TravoAPI.Repositories.Interfaces
 {
     public interface IPackingRepository
     {

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TravoAPI.Data;
-using TravoAPI.Data.Interfaces;
 using TravoAPI.Dtos.Planner;
 using TravoAPI.Models;
+using TravoAPI.Repositories.Interfaces;
 using TravoAPI.Services.Interfaces;
 
 namespace TravoAPI.Services
