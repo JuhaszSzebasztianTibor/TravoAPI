@@ -6,7 +6,7 @@ using TravoAPI.Dtos.CreateTrip;
 using TravoAPI.Services.Interfaces;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/trips")]
 [Authorize]
 public class TripsController : ControllerBase
 {
